@@ -9,17 +9,21 @@ Authors:
 
 License: Refer to the LICENSE file.
 
-This utility operates in two modes:
+This utility operates in multiple modes:
 1. STDIN Mode (default): If no filename is provided, text is read from standard input.
-2. File Mode: If one or more filenames are provided, the contents of the file(s) are read.
-   - With exactly one file (and --interactive not specified), the file’s content is copied to the
-     clipboard immediately.
-   - With multiple files, the --interactive flag is required. In interactive mode, for each file,
-     the filename, modification date, and size are displayed; the file’s content is copied to the
-     clipboard; then the user is prompted: "Copied. Press SPACE for next file or Q to quit."
-     The operation proceeds based on the keystroke.
-
-(No fallback to temporary files is provided; if clipboard copy fails, an error is raised.)
+2. File Mode:
+   - If exactly one file is provided (and neither --interactive nor --stream is specified),
+     the file’s content is copied to the clipboard immediately.
+   - If multiple files (or a filespec matching multiple files) are provided, you must specify
+     either the --interactive option or the new --stream option.
+     * --interactive: Processes files one-by-one. For each file, the filename, modification date,
+       and size are displayed; the file’s content is copied to the clipboard; then the user is
+       prompted "Copied. Press SPACE for next file or Q to quit."
+     * --stream: Concatenates all files into a single buffer by wrapping each file’s content with
+       markers. A batch header (including username, hostname, working directory, and timestamp)
+       is prepended, and each file is wrapped in a header and footer indicating its name, modification
+       timestamp, and byte size. Finally, a batch footer is appended.
+(No temporary fallback is provided; errors in clipboard copy are fatal.)
 """
 
 import os
@@ -30,6 +34,8 @@ import argparse
 import time
 import termios
 import tty
+import getpass
+import socket
 from typing import Optional, List, NoReturn
 
 def get_clipboard_command(preferred: Optional[str] = None) -> Optional[List[str]]:
@@ -37,13 +43,7 @@ def get_clipboard_command(preferred: Optional[str] = None) -> Optional[List[str]
     Determine the available clipboard command.
 
     If a preferred utility is provided, verify its presence; otherwise, choose the most
-    appropriate utility based on the environment (favoring Wayland if available).
-
-    Args:
-        preferred: Preferred clipboard utility (xclip, xsel, or wl-copy), if any.
-    Returns:
-        A list representing the command and its arguments if available, else None.
-    (Select your clipboard savior; if none is present, we throw in the towel.)
+    appropriate utility based on the environment.
     """
     if preferred:
         if preferred == "xclip" and shutil.which("xclip"):
@@ -166,6 +166,56 @@ def process_file(filename: str, cmd: List[str]) -> bool:
         print(f"Error processing file '{filename}': {e}", file=sys.stderr)
         return False
 
+def process_files_stream(filenames: List[str], cmd: List[str]) -> bool:
+    """
+    Process multiple files in stream mode by concatenating them into a single buffer
+    with wrapping markers.
+    """
+    # Gather batch header information
+    username = getpass.getuser()
+    hostname = socket.gethostname()
+    cwd = os.getcwd()
+    current_ts = time.strftime("%d%b%Y%p%H%M%S", time.localtime())
+    batch_header = (f"========BEGIN BATCH TRANSFER FROM {username}@{hostname}:{cwd} AT {current_ts}========\n")
+    buffer_list = [batch_header]
+    total_files = 0
+    total_bytes = 0
+
+    for filename in filenames:
+        try:
+            stats = os.stat(filename)
+            mod_ts = time.strftime("%d%b%Y%p%H%M%S", time.localtime(stats.st_mtime))
+            size = stats.st_size
+            with open(filename, "r", encoding="utf-8") as f:
+                content = f.read()
+        except Exception as e:
+            print(f"Error processing file '{filename}': {e}", file=sys.stderr)
+            return False
+
+        total_files += 1
+        total_bytes += size
+        file_basename = os.path.basename(filename).upper()
+        file_header = f"===========BEGIN {file_basename}, MODIFIED {mod_ts}===========\n"
+        file_footer = f"===========END {file_basename}, TOTAL {size} BYTES===========\n"
+        buffer_list.append(file_header)
+        buffer_list.append(content + "\n")
+        buffer_list.append(file_footer)
+
+    batch_footer = f"========END BATCH TRANSFER, TOTAL {total_files} FILES, {total_bytes} bytes========\n"
+    # Placeholder for a possible witty quip
+    witty_quip = "(Transfer complete: the world is now your clipboard.)\n"
+    ending_line = "============================================================\n"
+
+    buffer_list.append(batch_footer)
+    buffer_list.append(witty_quip)
+    buffer_list.append(ending_line)
+    final_buffer = "".join(buffer_list)
+
+    if not copy_to_system_clipboard(final_buffer, cmd):
+        print("Error: Clipboard copy failed in stream mode.", file=sys.stderr)
+        return False
+    return True
+
 def main() -> NoReturn:
     """
     Main function to copy text to the system clipboard.
@@ -175,8 +225,9 @@ def main() -> NoReturn:
       2. File Mode: If one or more filenames are provided, processes them as follows:
          - If exactly one file is provided (and --interactive is not specified), its contents are
            copied to the clipboard immediately.
-         - If multiple files are provided, --interactive must be specified. In interactive mode,
-           each file is processed one-by-one with user confirmation to proceed.
+         - If multiple files are provided, either --interactive or --stream must be specified.
+           In interactive mode, each file is processed one-by-one with user confirmation to proceed.
+           In stream mode, files are wrapped in separators, as is the overall batch.
     """
     parser = argparse.ArgumentParser(
         description="Copy text to the system clipboard from STDIN or file(s)."
@@ -192,6 +243,11 @@ def main() -> NoReturn:
         help="Enable interactive mode for processing multiple files."
     )
     parser.add_argument(
+        "--stream",
+        action="store_true",
+        help="Enable stream mode for processing multiple files by concatenating them into a single buffer with wrapping markers."
+    )
+    parser.add_argument(
         "filenames",
         nargs="*",
         help="File(s) to read from. If provided, text is read from the file(s) instead of STDIN."
@@ -205,8 +261,8 @@ def main() -> NoReturn:
         sys.exit(1)
 
     if args.filenames:
-        if len(args.filenames) == 1 and not args.interactive:
-            # Single file, non-interactive mode.
+        # Single file mode: if exactly one file and neither interactive nor stream mode specified.
+        if len(args.filenames) == 1 and not (args.interactive or args.stream):
             filename = args.filenames[0]
             try:
                 with open(filename, "r", encoding="utf-8") as f:
@@ -220,14 +276,19 @@ def main() -> NoReturn:
                 sys.exit(1)
             sys.exit(0)
         else:
-            # Multiple files provided; interactive mode is required.
-            if not args.interactive:
-                print("Error: Multiple files provided. Use --interactive mode to process multiple files.", file=sys.stderr)
+            # Multiple files provided; either --interactive or --stream must be specified.
+            if not (args.interactive or args.stream):
+                print("Error: Multiple files provided. Use --interactive or --stream mode to process multiple files.", file=sys.stderr)
                 sys.exit(1)
-            for filename in args.filenames:
-                if not process_file(filename, cmd):
-                    break
-            sys.exit(0)
+            if args.interactive:
+                for filename in args.filenames:
+                    if not process_file(filename, cmd):
+                        break
+                sys.exit(0)
+            elif args.stream:
+                if not process_files_stream(args.filenames, cmd):
+                    sys.exit(1)
+                sys.exit(0)
     else:
         # No filenames provided; read from STDIN.
         if sys.stdin.isatty():

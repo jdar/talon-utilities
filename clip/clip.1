@@ -1,9 +1,9 @@
-.TH CLIP 1 "February 2025" "Version 1.0" "Talon Utilities"
+.TH CLIP 1 "February 2025" "Version 1.1" "Talon Utilities"
 .SH NAME
 clip \- copy text to the system clipboard from STDIN or file(s)
 .SH SYNOPSIS
 .B clip
-[\fB--utility\fR xclip|xsel|wl-copy] [\fB--interactive\fR] [file...]
+[\fB--utility\fR xclip|xsel|wl-copy] [\fB--interactive\fR | \fB--stream\fR] [file...]
 .SH DESCRIPTION
 The clip utility reads text from standard input or file(s) and copies it to the system clipboard by
 invoking an external clipboard utility. Supported utilities include:
@@ -17,24 +17,42 @@ invoking an external clipboard utility. Supported utilities include:
 In STDIN mode (when no file is specified), clip reads from standard input and copies the input to the
 clipboard.
 .PP
-In File mode, if exactly one file is provided (and --interactive is not specified), the file’s content is
-read and copied to the clipboard immediately.
-.PP
-If multiple files (or a filespec matching multiple files) are provided, the \fB--interactive\fR flag is required.
-In interactive mode, for each file the utility:
+In File mode:
 .IP
-displays the filename along with its modification date and size,
+If exactly one file is provided (and neither --interactive nor --stream is specified), the file’s
+content is read and copied to the clipboard immediately.
 .IP
-copies its content to the clipboard,
+If multiple files (or a filespec matching multiple files) are provided, you must specify either the 
+\fB--interactive\fR option or the \fB--stream\fR option:
 .IP
-prompts: “Copied. Press SPACE for next file or Q to quit,” and waits for a keystroke before proceeding.
+\fB--interactive\fR: Processes files one-by-one. For each file, the filename, modification date, and size are displayed; the file’s content is copied to the clipboard; then the user is prompted:
+"Copied. Press SPACE for next file or Q to quit."
+.IP
+\fB--stream\fR: Concatenates all files into a single buffer by wrapping each file’s content with markers.
+The stream begins with a batch header that includes the username, hostname, working directory, and the
+current timestamp. For each file, a header line:
+.RS
+"===========BEGIN FILENAME, MODIFIED TIMESTAMP==========="
+.RE
+precedes the file content, and a footer line follows:
+.RS
+"===========END FILENAME, TOTAL BYTE_COUNT BYTES==========="
+.RE
+After processing all files, a final batch footer is appended:
+.RS
+"========END BATCH TRANSFER, TOTAL N FILES, TOTAL_BYTES bytes========"
+(possible witty quip)
+"============================================================"
 .SH OPTIONS
 .TP
 \fB--utility\fR xclip|xsel|wl-copy
 Explicitly select the clipboard utility to use.
 .TP
 \fB--interactive\fR
-Enable interactive mode for processing multiple files. (Required if more than one file is provided.)
+Enable interactive mode for processing multiple files.
+.TP
+\fB--stream\fR
+Enable stream mode for processing multiple files by concatenating them into a single buffer with wrapping markers.
 .SH DEPENDENCIES
 Ensure that one of the above clipboard utilities is installed.
 For example, on Fedora/RHEL:
