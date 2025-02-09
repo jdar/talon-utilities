@@ -1,0 +1,51 @@
+File: talon-utilities/clip/INSTALL.TXT
+
+Installation Instructions - Talon Utilities: clip/unclip
+--------------------------------------------------------
+
+1. REQUIREMENTS:
+   - Python 3.11+ (Yes, the future is now.)
+   - External Clipboard Utilities:
+       • xclip       (for X11 systems)
+       • xsel        (an alternative for X11)
+       • wl-clipboard (provides wl-copy for Wayland)
+     (Install at least one of these to ensure the scripts function properly.
+      Without one, you're essentially fighting an uphill battle against the intangible.)
+
+   On Fedora/RHEL:
+       sudo dnf install xclip         # for X11
+       sudo dnf install xsel          # alternative for X11
+       sudo dnf install wl-clipboard  # for Wayland
+
+   On Debian/Ubuntu:
+       sudo apt-get install xclip         # for X11
+       sudo apt-get install xsel          # alternative for X11
+       sudo apt-get install wl-clipboard  # for Wayland
+
+2. DEPLOYMENT:
+   - Copy 'clip.py' and 'unclip.py' to a directory in your PATH (e.g., /usr/local/bin),
+     dropping the '.py' extension, and ensuring the shebang line at the top is appropriate
+     for your environment.
+   - Make them executable with:
+         chmod +x /usr/local/bin/clip.py
+         chmod +x /usr/local/bin/unclip.py
+
+3. MAN PAGES:
+   - Copy 'clip.1' and 'unclip.1' to an appropriate man directory (e.g., /usr/local/share/man/man1/).
+   - Then run 'sudo mandb' (or your system's equivalent) to refresh the man database.
+
+4. VALIDATION:
+   - Test the installation with:
+         echo "Can the system handle this?" | clip.py
+         unclip.py
+   - If you see "Can the system handle this?" as output, consider it a minor victory in the war against the ephemeral.
+
+5. TROUBLESHOOTING:
+   - If you receive empty results, try the --verbose flag for some extra, sardonic commentary on environment detection.
+   - Note: In environments lacking a recognized clipboard utility (or on TTY-only systems), these scripts will now throw an error rather than silently using a temporary fallback.
+   - Double-check that one of the required clipboard utilities is installed and accessible.
+
+6. REMOVAL:
+   - Remove the scripts from your PATH if you must.
+   - Or keep them around for that day when you desperately need them most. (Spoiler: That day is likely today.)
+

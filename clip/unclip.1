@@ -1,0 +1,45 @@
+.TH UNCLIP 1 "February 2025" "Version 1.0" "Talon Utilities"
+.SH NAME
+unclip \- paste text from the system clipboard to standard output
+.SH SYNOPSIS
+.B unclip
+[\fB--utility\fR xclip|xsel|wl-copy]
+.SH DESCRIPTION
+The unclip utility retrieves text from the system clipboard by invoking an external clipboard utility.
+Supported utilities include:
+.TP
+\fBxclip\fR \- for X11 (requires the xclip package)
+.TP
+\fBxsel\fR \- for X11 (requires the xsel package)
+.TP
+\fBwl-copy\fR \- for Wayland (requires the wl-clipboard package)
+.PP
+If no suitable clipboard utility is found or if the paste operation fails, unclip terminates with an
+error message suggesting the necessary installation. (No silent fallback here—if your system isn’t set up,
+you get a message, not an empty output.)
+.SH DEPENDENCIES
+Ensure that one of the above clipboard utilities is installed.
+For example, on Fedora/RHEL:
+.IP
+    sudo dnf install xclip
+.IP
+    sudo dnf install xsel
+.IP
+    sudo dnf install wl-clipboard
+On Debian/Ubuntu:
+.IP
+    sudo apt-get install xclip
+.IP
+    sudo apt-get install xsel
+.IP
+    sudo apt-get install wl-clipboard
+.SH EXIT STATUS
+Returns 0 on success, 1 on errors (e.g., failure to retrieve clipboard contents).
+.SH AUTHOR
+Matt Heck, Hard Problems Group, LLC
+.RS
+R. Talon
+.RE
+.SH LICENSE
+Refer to the LICENSE file.
+
