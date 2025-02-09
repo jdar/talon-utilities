@@ -1,11 +1,11 @@
 .TH CLIP 1 "February 2025" "Version 1.0" "Talon Utilities"
 .SH NAME
-clip \- copy text from standard input to the system clipboard
+clip \- copy text to the system clipboard from STDIN or file(s)
 .SH SYNOPSIS
 .B clip
-[\fB--utility\fR xclip|xsel|wl-copy]
+[\fB--utility\fR xclip|xsel|wl-copy] [\fB--interactive\fR] [file...]
 .SH DESCRIPTION
-The clip utility reads text from standard input and copies it to the system clipboard by
+The clip utility reads text from standard input or file(s) and copies it to the system clipboard by
 invoking an external clipboard utility. Supported utilities include:
 .TP
 \fBxclip\fR \- for X11 (requires the xclip package)
@@ -14,9 +14,27 @@ invoking an external clipboard utility. Supported utilities include:
 .TP
 \fBwl-copy\fR \- for Wayland (requires the wl-clipboard package)
 .PP
-If no suitable clipboard utility is found or if the copy operation fails, clip terminates with an
-error message suggesting the necessary installation. (No silent fallback here—if your system
-isn’t set up, you get a message, not a temporary file in /tmp.)
+In STDIN mode (when no file is specified), clip reads from standard input and copies the input to the
+clipboard.
+.PP
+In File mode, if exactly one file is provided (and --interactive is not specified), the file’s content is
+read and copied to the clipboard immediately.
+.PP
+If multiple files (or a filespec matching multiple files) are provided, the \fB--interactive\fR flag is required.
+In interactive mode, for each file the utility:
+.IP
+displays the filename along with its modification date and size,
+.IP
+copies its content to the clipboard,
+.IP
+prompts: “Copied. Press SPACE for next file or Q to quit,” and waits for a keystroke before proceeding.
+.SH OPTIONS
+.TP
+\fB--utility\fR xclip|xsel|wl-copy
+Explicitly select the clipboard utility to use.
+.TP
+\fB--interactive\fR
+Enable interactive mode for processing multiple files. (Required if more than one file is provided.)
 .SH DEPENDENCIES
 Ensure that one of the above clipboard utilities is installed.
 For example, on Fedora/RHEL:
@@ -34,9 +52,9 @@ On Debian/Ubuntu:
 .IP
     sudo apt-get install wl-clipboard
 .SH EXIT STATUS
-Returns 0 on success, 1 on errors (e.g., no data on STDIN or failure to copy to the clipboard).
+Returns 0 on success, 1 on errors (e.g., no input data, file read error, or clipboard copy failure).
 .SH AUTHOR
-Matt Heck, Hard Problems Group, LLC
+Matt Heck, President, Hard Problems Group, LLC
 .RS
 R. Talon
 .RE
