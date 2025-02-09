@@ -31,6 +31,7 @@ import sys
 import subprocess
 import shutil
 import argparse
+import random
 import time
 import termios
 import tty
@@ -202,11 +203,32 @@ def process_files_stream(filenames: List[str], cmd: List[str]) -> bool:
         buffer_list.append(file_footer)
 
     batch_footer = f"========END BATCH TRANSFER, TOTAL {total_files} FILES, {total_bytes} bytes========\n"
-    # Placeholder for a possible witty quip
-    witty_quip = "(Transfer complete: the world is now your clipboard.)\n"
+    witty_quips = [
+        "(Transfer complete: the world is now your clipboard.)",
+        "THANK YOU FOR USING TALON UTILITIES - NO CHARGE TO CALLING PARTY",
+        "Clipboard assembled: mission accomplished!",
+        "Operation 'Copy-Paste' successful. Onward!",
+        "Your data has been delivered. Now go forth and paste.",
+        "A flawless execution—clipboard now holds your treasures.",
+        "Clipboard operation complete. You might want to brag about this.",
+        "Files consolidated, clipboard activated. Let the pasting begin.",
+        "Data fusion achieved—your clipboard is the new command center.",
+        "Batch mode: engaged. Your files are now one with the clipboard.",
+        "Data delivered—now go forth and paste like a champion.",
+        "Clipboard updated. It’s not a revolution, just another day.",
+        "Data transferred. Trust me, it’s barely impressive.",
+        "Operation complete. Your clipboard now bears the burden of mediocrity.",
+        "Files merged. The clipboard’s content is as cynical as its owner.",
+        "Clipboard loaded. A small victory in an indifferent cosmos.",
+        "Data delivered. Enjoy your clipboard, if you can muster enthusiasm.",
+        "Mission accomplished. Your clipboard now holds what little hope remains.",
+        "Copy operation successful. Don’t let it inflate your ego.",
+        "Transfer complete. At least your clipboard works in an otherwise failing system.",
+        "Files consolidated. In a universe of chaos, your clipboard stands as the lone obedient servant."    ]
     ending_line = "============================================================\n"
 
     buffer_list.append(batch_footer)
+    witty_quip = random.choice(witty_quips)+"\n"
     buffer_list.append(witty_quip)
     buffer_list.append(ending_line)
     final_buffer = "".join(buffer_list)
