@@ -1,0 +1,60 @@
+.TH PIP-UPDATE 1 "February 2025" "Talon Utilities" "User Manuals"
+.SH NAME
+pip-update \- Automates bulk-updating of pip packages in Python.
+
+.SH SYNOPSIS
+.B pip-update
+[\fIOPTIONS\fR]
+
+.SH DESCRIPTION
+The \fIpip-update\fR utility attempts to upgrade all of your installed pip packages. It also runs 
+\fIpip check\fR before and after the update, reporting any environment conflicts. If conflicts
+already exist before updating, the script will refuse to proceed unless you specify the 
+\fB\-\-force\fR flag.
+
+.SH OPTIONS
+.TP
+\fB--skip PKG1 PKG2 ...\fR
+Skip upgrading these package names.
+.TP
+\fB--dry-run\fR
+Report what would be updated without actually upgrading anything.
+.TP
+\fB--force\fR
+Proceed with upgrades even if there are existing pip conflicts. (Potentially reckless.)
+.TP
+\fB--nocolor\fR
+Disable color output.
+.TP
+\fB--forcecolor\fR
+Force color output (overrides TTY detection).
+.TP
+\fB--report FILE.json\fR
+Write a JSON report capturing environment details, pre/post conflicts, and the final status of each upgrade attempt.
+
+.SH EXIT STATUS
+The program exits with 0 on success or if no updates are needed, 1 if a fatal error or conflict is encountered 
+(and \fB\-\-force\fR is not used), or other non-zero codes if pip itself fails abruptly.
+
+.SH EXAMPLES
+.nf
+  pip-update
+  pip-update --skip pip setuptools
+  pip-update --dry-run
+  pip-update --force
+  pip-update --report upgrade-results.json
+.fi
+
+.SH AUTHOR
+Hard Problems Group, LLC.  R. Talon
+
+.SH LICENSE
+See LICENSE.txt in the main Talon Utilities directory. 
+(If you suffer any harm or existential dread from misused upgrades, that's on you.)
+
+.SH BUGS
+Pip's dependency resolver isn't actually a full solver, so expect surprises when you force updates.
+
+.SH SEE ALSO
+pip(1), pip-check(1)
+

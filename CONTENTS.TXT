@@ -1,20 +1,40 @@
 TALON UTILITIES: CONTENTS
 09FEB2025
 
-This file provides a brief overview of the subproject utilities comprising the Talon Utilities suite. 
-Each utility is designed to tackle a specific clipboard-related task with robust error handling and a healthy dose of pragmatism.
+This file provides a brief overview of the subproject utilities comprising the
+Talon Utilities suite.  Each utility is designed to tackle a specific
+clipboard-related task with robust error handling and a healthy dose of
+pragmatism.
 
 1. clip
    - Description: Copies text from standard input to the system clipboard.
-   - Implementation: Leverages external clipboard utilities (xclip, xsel, or wl-copy) for graphical environments.
-   - Behavior: If no suitable clipboard utility is available or the operation fails, the script terminates with an error—no temporary fallbacks here.
+   - Implementation: Leverages external clipboard utilities (xclip, xsel, or
+     wl-copy) for graphical environments.
+   - Behavior: If no suitable clipboard utility is available or the operation
+     fails, the script terminates with an error—no temporary fallbacks here.
    - Usage: Pipe text into the script (e.g., `echo "Hello" | clip`).
 
 2. unclip
-   - Description: Retrieves text from the system clipboard and outputs it to standard output.
-   - Implementation: Also relies on external clipboard utilities (xclip, xsel, or wl-copy) to interface with the clipboard.
-   - Behavior: Fails with an error if no suitable utility is detected or if the retrieval operation fails.
-   - Usage: Simply run the script (e.g., `unclip`) to print the clipboard content.
+   - Description: Retrieves text from the system clipboard and outputs it to
+     standard output.
+   - Implementation: Also relies on external clipboard utilities (xclip, xsel,
+     or wl-copy) to interface with the clipboard.
+   - Behavior: Fails with an error if no suitable utility is detected or if
+     the retrieval operation fails.
+   - Usage: Simply run the script (e.g., `unclip`) to print the clipboard
+     content.
+
+3. pip-update
+   - Description: Automates the bulk updating of installed pip packages. Runs
+     `pip check` before and after, refusing to proceed if conflicts exist
+     (unless `--force` is specified).
+   - Implementation: Uses JSON-based listing of outdated packages if
+     available, falling back to textual parsing otherwise. Iterates upgrades
+     one by one, so partial failures don't stop everything.
+   - Behavior: Warns about conflicts, prints a color-coded summary table, and
+     optionally writes a JSON report with environment metadata.
+   - Usage: `pip-update [--skip PKGNAME] [--dry-run] [--force] [--report
+     FILE.json] [--nocolor|--forcecolor]`
 
 Additional utilities may be added in the future as the need arises.
 
