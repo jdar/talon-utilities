@@ -2,7 +2,7 @@ Installation Instructions - Talon Utilities
 --------------------------------------------------------
 
 1. REQUIREMENTS:
-   - Python 3.11+ (Yes, the future is now.)
+   - Python 3.6+ (Yes, the future is now.)
    - External Clipboard Utilities:
        • xclip       (for X11 systems)
        • xsel        (an alternative for X11)
@@ -17,6 +17,7 @@ Installation Instructions - Talon Utilities
    - A thorough installer is provided in this project.
    - To install Talon Utilities, run the following command as root:
          sudo python3 install.py
+     (If you encounter a version error, ensure you're using Python 3.6 or newer.)
    - Optional parameters:
          --bindir: Directory for executable scripts (default: /usr/local/bin)
          --mandir: Directory for man pages (default: /usr/local/share/man/man1)
