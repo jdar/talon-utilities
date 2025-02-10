@@ -1,0 +1,38 @@
+Installation Instructions - Talon Utilities
+--------------------------------------------------------
+
+1. REQUIREMENTS:
+   - Python 3.11+ (Yes, the future is now.)
+   - External Clipboard Utilities:
+       • xclip       (for X11 systems)
+       • xsel        (an alternative for X11)
+       • wl-clipboard (provides wl-copy for Wayland)
+     (Install at least one of these to ensure the scripts function properly.
+      Without one, you're essentially fighting an uphill battle against the intangible.)
+
+   Supported Operating Systems:
+       Ubuntu, RHEL 9.5, Fedora 41
+
+2. INSTALLER:
+   - A thorough installer is provided in this project.
+   - To install Talon Utilities, run the following command as root:
+         sudo python3 install.py
+   - Optional parameters:
+         --bindir: Directory for executable scripts (default: /usr/local/bin)
+         --mandir: Directory for man pages (default: /usr/local/share/man/man1)
+   - The installer will:
+         • Copy 'clip.py' and 'unclip.py' from the clip/ directory to the specified bindir,
+           dropping the '.py' extension, and set executable permissions.
+         • Copy the corresponding man pages ('clip.1' and 'unclip.1') to the specified mandir.
+         • Refresh the man database (via 'mandb').
+
+3. UNINSTALLATION:
+   - To remove the installed utilities, delete the files from your bindir and mandir manually.
+
+4. TROUBLESHOOTING:
+   - The installer performs thorough checks and will halt on errors.
+   - Ensure you are running the installer as root and that all dependencies are satisfied.
+   - Check that the external clipboard utilities are installed if you plan to use clip/unclip.
+
+5. REMOVAL:
+   - Remove the installed files from your system if you no longer require the utilities.
