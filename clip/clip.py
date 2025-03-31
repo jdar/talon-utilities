@@ -39,6 +39,7 @@ import getpass
 import socket
 from typing import Optional, List, NoReturn
 
+
 def get_clipboard_command(preferred: Optional[str] = None) -> Optional[List[str]]:
     """
     Determine the available clipboard command.
@@ -53,8 +54,11 @@ def get_clipboard_command(preferred: Optional[str] = None) -> Optional[List[str]
             return ["xsel", "--clipboard", "--input"]
         elif preferred == "wl-copy" and shutil.which("wl-copy"):
             return ["wl-copy"]
+        elif preferred == "pbcopy" and shutil.which("pbcopy"):
+            return ["pbcopy"]
         else:
-            print(f"Error: Preferred utility '{preferred}' not found in PATH.", file=sys.stderr)
+            print(
+                f"Error: Preferred utility '{preferred}' not found in PATH.", file=sys.stderr)
             return None
 
     # No preferred utility specified; choose based on environment.
@@ -76,8 +80,15 @@ def get_clipboard_command(preferred: Optional[str] = None) -> Optional[List[str]
             return ["wl-copy"]
         else:
             return None
+    # macOS support: check if we're running on Darwin.
+    elif sys.platform == "darwin":
+        if shutil.which("pbcopy"):
+            return ["pbcopy"]
+        else:
+            return None
     else:
         return None
+
 
 def copy_to_system_clipboard(text: str, cmd: Optional[List[str]] = None) -> bool:
     """
@@ -101,6 +112,7 @@ def copy_to_system_clipboard(text: str, cmd: Optional[List[str]] = None) -> bool
         print(f"Error: System clipboard copy failed: {e}", file=sys.stderr)
         return False
 
+
 def get_installation_instructions() -> str:
     """
     Provide instructions for installing a suitable clipboard utility based on the environment.
@@ -118,6 +130,7 @@ def get_installation_instructions() -> str:
     else:
         return "No graphical environment detected. Clipboard functionality requires a GUI environment."
 
+
 def getch() -> str:
     """
     Read a single character from standard input without echo.
@@ -134,6 +147,7 @@ def getch() -> str:
     finally:
         termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
     return ch
+
 
 def process_file(filename: str, cmd: List[str]) -> bool:
     """
@@ -155,7 +169,8 @@ def process_file(filename: str, cmd: List[str]) -> bool:
         with open(filename, "r", encoding="utf-8") as f:
             text = f.read()
         if not copy_to_system_clipboard(text, cmd):
-            print(f"Error: Clipboard copy failed for {filename}.", file=sys.stderr)
+            print(
+                f"Error: Clipboard copy failed for {filename}.", file=sys.stderr)
             return False
         print("Copied. Press SPACE for next file or Q to quit.", end='', flush=True)
         ch = getch()
@@ -167,6 +182,7 @@ def process_file(filename: str, cmd: List[str]) -> bool:
         print(f"Error processing file '{filename}': {e}", file=sys.stderr)
         return False
 
+
 def process_files_stream(filenames: List[str], cmd: List[str]) -> bool:
     """
     Process multiple files in stream mode by concatenating them into a single buffer
@@ -177,7 +193,8 @@ def process_files_stream(filenames: List[str], cmd: List[str]) -> bool:
     hostname = socket.gethostname()
     cwd = os.getcwd()
     current_ts = time.strftime("%d%b%Y%p%H%M%S", time.localtime())
-    batch_header = (f"========BEGIN BATCH TRANSFER FROM {username}@{hostname}:{cwd} AT {current_ts}========\n")
+    batch_header = (
+        f"========BEGIN BATCH TRANSFER FROM {username}@{hostname}:{cwd} AT {current_ts}========\n")
     buffer_list = [batch_header]
     total_files = 0
     total_bytes = 0
@@ -185,7 +202,8 @@ def process_files_stream(filenames: List[str], cmd: List[str]) -> bool:
     for filename in filenames:
         try:
             stats = os.stat(filename)
-            mod_ts = time.strftime("%d%b%Y%p%H%M%S", time.localtime(stats.st_mtime))
+            mod_ts = time.strftime(
+                "%d%b%Y%p%H%M%S", time.localtime(stats.st_mtime))
             size = stats.st_size
             with open(filename, "r", encoding="utf-8") as f:
                 content = f.read()
@@ -224,7 +242,7 @@ def process_files_stream(filenames: List[str], cmd: List[str]) -> bool:
         "Mission accomplished. Your clipboard now holds what little hope remains.",
         "Copy operation successful. Don’t let it inflate your ego.",
         "Transfer complete. At least your clipboard works in an otherwise failing system.",
-        "Files consolidated. In a universe of chaos, your clipboard stands as the lone obedient servant."    ]
+        "Files consolidated. In a universe of chaos, your clipboard stands as the lone obedient servant."]
     ending_line = "============================================================\n"
 
     buffer_list.append(batch_footer)
@@ -237,6 +255,7 @@ def process_files_stream(filenames: List[str], cmd: List[str]) -> bool:
         print("Error: Clipboard copy failed in stream mode.", file=sys.stderr)
         return False
     return True
+
 
 def main() -> NoReturn:
     """
@@ -256,7 +275,7 @@ def main() -> NoReturn:
     )
     parser.add_argument(
         "--utility",
-        choices=["xclip", "xsel", "wl-copy"],
+        choices=["xclip", "xsel", "wl-copy", "pbcopy"],
         help="Explicitly select the clipboard utility to use."
     )
     parser.add_argument(
@@ -279,7 +298,8 @@ def main() -> NoReturn:
     cmd = get_clipboard_command(args.utility)
     if cmd is None:
         instructions = get_installation_instructions()
-        print(f"Error: No suitable clipboard utility found. {instructions}", file=sys.stderr)
+        print(
+            f"Error: No suitable clipboard utility found. {instructions}", file=sys.stderr)
         sys.exit(1)
 
     if args.filenames:
@@ -290,17 +310,20 @@ def main() -> NoReturn:
                 with open(filename, "r", encoding="utf-8") as f:
                     text = f.read()
             except Exception as e:
-                print(f"Error: Unable to read file '{filename}': {e}", file=sys.stderr)
+                print(
+                    f"Error: Unable to read file '{filename}': {e}", file=sys.stderr)
                 sys.exit(1)
             if not copy_to_system_clipboard(text, cmd):
                 instructions = get_installation_instructions()
-                print(f"Error: Clipboard copy failed. {instructions}", file=sys.stderr)
+                print(
+                    f"Error: Clipboard copy failed. {instructions}", file=sys.stderr)
                 sys.exit(1)
             sys.exit(0)
         else:
             # Multiple files provided; either --interactive or --stream must be specified.
             if not (args.interactive or args.stream):
-                print("Error: Multiple files provided. Use --interactive or --stream mode to process multiple files.", file=sys.stderr)
+                print(
+                    "Error: Multiple files provided. Use --interactive or --stream mode to process multiple files.", file=sys.stderr)
                 sys.exit(1)
             if args.interactive:
                 for filename in args.filenames:
@@ -322,10 +345,11 @@ def main() -> NoReturn:
             sys.exit(1)
         if not copy_to_system_clipboard(text, cmd):
             instructions = get_installation_instructions()
-            print(f"Error: Clipboard copy failed. {instructions}", file=sys.stderr)
+            print(
+                f"Error: Clipboard copy failed. {instructions}", file=sys.stderr)
             sys.exit(1)
         sys.exit(0)
 
+
 if __name__ == "__main__":
     main()
-
